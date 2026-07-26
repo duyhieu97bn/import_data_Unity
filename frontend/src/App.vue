@@ -10,19 +10,31 @@
           </a-upload>
         </a-space>
       </a-layout-header>
-      <a-layout-content style="padding: 16px 24px">
-        <a-tabs v-model:activeKey="activeTab" @change="onTabChange">
-          <a-tab-pane key="nhap" tab="📝 Nhập dữ liệu">
-            <DataEntryForm />
-          </a-tab-pane>
-          <a-tab-pane key="xem" tab="📋 Xem dữ liệu">
-            <DataTable />
-          </a-tab-pane>
-          <a-tab-pane key="goi" tab="📦 Quản lý gói">
-            <GoiManager />
-          </a-tab-pane>
-        </a-tabs>
-      </a-layout-content>
+      <a-layout>
+        <a-layout-sider v-model:collapsed="collapsed" collapsible width="200" style="background: #fff; border-right: 1px solid #f0f0f0">
+          <a-menu v-model:selectedKeys="selectedKeys" mode="inline" style="height: 100%; border-inline-end: none" @click="onMenuClick">
+            <a-menu-item key="dashboard">
+              <DashboardOutlined />
+              <span>Dashboard</span>
+            </a-menu-item>
+            <a-menu-item key="nhap">
+              <EditOutlined />
+              <span>Nhập dữ liệu</span>
+            </a-menu-item>
+            <a-menu-item key="xem">
+              <TableOutlined />
+              <span>Xem dữ liệu</span>
+            </a-menu-item>
+            <a-menu-item key="goi">
+              <InboxOutlined />
+              <span>Quản lý gói</span>
+            </a-menu-item>
+          </a-menu>
+        </a-layout-sider>
+        <a-layout-content style="padding: 16px 24px">
+          <component :is="currentComponent" />
+        </a-layout-content>
+      </a-layout>
     </a-layout>
 
     <a-modal v-model:open="previewVisible" title="Xem trước dữ liệu tải lên" width="90%" :footer="null" :destroy-on-close="true">
@@ -42,11 +54,13 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { DashboardOutlined, EditOutlined, TableOutlined, InboxOutlined } from '@ant-design/icons-vue'
 import { useRouter, useRoute } from 'vue-router'
 import viVN from 'ant-design-vue/es/locale/vi_VN'
 import dayjs from 'dayjs'
 import 'dayjs/locale/vi'
+import Dashboard from './components/Dashboard.vue'
 import DataEntryForm from './components/DataEntryForm.vue'
 import DataTable from './components/DataTable.vue'
 import GoiManager from './components/GoiManager.vue'
@@ -58,10 +72,20 @@ dayjs.locale('vi')
 
 const locale = viVN
 const router = useRouter()
-const activeTab = ref(window.location.hash.includes('/xem') ? 'xem' : window.location.hash.includes('/goi') ? 'goi' : 'nhap')
+const route = useRoute()
 const store = useDataStore()
+const collapsed = ref(false)
 const loading = ref(false)
 const uploading = ref(false)
+
+const componentMap = { dashboard: Dashboard, nhap: DataEntryForm, xem: DataTable, goi: GoiManager }
+
+function hashToMenuKey() {
+  const key = window.location.hash.replace('#/', '').split('/')[0]
+  return key || 'dashboard'
+}
+const selectedKeys = ref([hashToMenuKey()])
+const currentComponent = computed(() => componentMap[selectedKeys.value[0]])
 
 const previewVisible = ref(false)
 const previewRecords = ref([])
@@ -123,20 +147,19 @@ async function handleConfirmUpload() {
   }
 }
 
-const tabRouteMap = { nhap: 'Nhap', xem: 'Xem', goi: 'Goi' }
+const routeNameMap = { dashboard: 'Dashboard', nhap: 'Nhap', xem: 'Xem', goi: 'Goi' }
 
-function onTabChange(key) {
-  router.push({ name: tabRouteMap[key] })
+function onMenuClick({ key }) {
+  selectedKeys.value = [key]
+  router.push({ name: routeNameMap[key] })
   if (key === 'xem') {
     store.loadRecords()
   }
 }
 
-const route = useRoute()
 watch(() => route.name, (name) => {
-  if (name === 'Xem') activeTab.value = 'xem'
-  else if (name === 'Goi') activeTab.value = 'goi'
-  else activeTab.value = 'nhap'
+  const map = { Dashboard: 'dashboard', Xem: 'xem', Goi: 'goi', Nhap: 'nhap' }
+  selectedKeys.value = [map[name] || 'dashboard']
 })
 
 onMounted(() => {

@@ -1,2 +1,3 @@
 .planning
 *.db
+__pycache__/

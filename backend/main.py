@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routes.records import router as records_router
 from routes.goi import router as goi_router
 from routes.upload import router as upload_router
+from routes.dashboard import router as dashboard_router
 import config
 import db
 
@@ -24,6 +25,7 @@ app.add_middleware(
 app.include_router(records_router)
 app.include_router(goi_router)
 app.include_router(upload_router)
+app.include_router(dashboard_router)
 
 
 @app.get("/api/health")
