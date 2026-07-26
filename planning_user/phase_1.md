@@ -1,0 +1,93 @@
+Tôi muốn tạo 1 trang nhập dữ liệu với các trường như sau:
+- CLB: (từ từ)
+- Ngày: input
+- Tháng: input
+- Năm: input
+- Ngày tháng năm: hiển thị
+- Số biên nhận: input ( number hoăc string) sô thì bắt đầu từ 1 (50 số tính là 1 quyển số)
+- Quyển số: tự động điền, quyển số bằng số biên nhận chia 50 lấy số nguyên, Nếu số biên nhận là chữ thì quyển số bằng 0
+- Mã khách hàng: input
+- Họ và tên khách hàng: input
+- SĐT: input
+- Mã gói: một list tên mã gói 
+    - mã gói là một object chứa các trường:
+        - Mã gói: string (giá trị duy nhất không null)
+        - Mã gói hoạt động: string (bằng mã gói hoặc null)
+        - CLB: string
+        - Loại thẻ: string
+        - Phân bổ: string
+        - Mã loại thẻ theo Taget: string
+        - Mã loại thẻ sử dụng lọc PT: string
+        - Thời gian (tháng): string
+        - Thời gian (tháng): string
+        - Giá niêm yết/người/buổi tập: string
+        - Giá niêm yết/1 gia đình: string
+        - Ghi chú: string
+- Sale:  một list (sẽ định nghĩa sau)
+- PT chăm sóc: một list (sẽ định nghĩa sau)
+- Loại thẻ 1: tự động theo mã gói
+- Phân bổ 1: tự động theo mã gói
+- Loại thẻ 2: tự động theo mã gói
+- Phân bổ 2: Auto dựa vào công thức excel sau: =IF(AND(J8=J7;M8=M7;BO8=BO7; BO8<>100%);"";P8) (J là cột Họ và tên khách hàng, M là mã gói, BO là phần trăm Sale được hưởng, P là phẩn bổ 1)
+- CS nhập:  một list (sẽ định nghĩa sau)
+- PT GYM: input number
+- PTTL/PTP: input number
+- Daily: input number
+- Bơi: input number
+- PT tặng: input number
+- Tổng SS: là tổng của  PT GYM, PTTL/PTP, Daily, Bơi, PT tặng
+- Số tháng: input number
+- Cộng tháng BL: input number
+- Cộng tháng tặng: input number
+- Cộng ngày tặng: input number
+- Tổng số tháng: bằng Số tháng + Cộng tháng BL + Cộng tháng tặng
+- Gói tập: String (Mã gói + PT GYM + PTTL/PTP + Daily + PT tặng)
+- Khung giờ tập: input string
+- Số HĐ:  input string
+- Số tháng, buổi: tự động theo mã gói
+- Ngày bắt đầu: input date
+- Ngày Kết thúc: Ngày bắt đầu + Tổng số tháng
+- Tình trạng: Ngày hiện tại trừ đi ngày kết thúc
+- Tổng số ngày: ngày kết thúc trừ ngày bắt đầu tính ra số ngày
+- Tổng số ngày còn lại: tự động
+- Quà tặng: input string
+- Đơn giá niêm yết: tự động theo mã gói
+- Tổng tiền bảo lưu: bằng đơn giá niêm yết * Cộng tháng BL
+- Tổng tiền buổi dạy: (bằng đơn giá niêm yết * (PT GYM + PTTL/PTP + Daily + PT tặng))
+- Tổng tiền: max(Đơn giá niêm yết, Tổng tiền bảo lưu, Tổng tiền buổi dạy)
+- Mức ưu đãi: Input phần trăm
+- Số tiền KH được giảm: tự động tính dựa trên tổng tiền * mức ưu đãi
+- Tổng: "Tổng tiền" trừ "Số tiền KH được giảm"
+- Phần trăm sale được tính DT: input phần trăm
+- Số tiền dịch vụ phải thu của KH: Tổng * "Phần trăm Sale được tính DT"
+- BN đặt cọc và tt Phần thiếu: Input string
+- tên gói Nâng cấp, số tiền gia hạn PT: input string
+- Số biên nhận đặt cọc hoặc nâng cấp: input number
+- KH đã đặt cọc: input string
+- Tổng Đặt cọc, nâng cấp: input string
+- Còn phải thu KH: input string
+- Đặt cọc: input string
+- TT phần thiếu: input string
+- Đóng Full: input string
+- Phí Pos: input string
+- Doanh thu: input string
+- Hình thức TT: input string
+- Đã nhận TM: input string
+- CK chung: input string
+- Tổng số tiền CK chung: input string
+- Trạng thái: input string
+- Tổng gói tập: input string
+- Loại: input string
+- Lượt: input string
+- Nguồn: input string
+- Tình trạng: true/false
+- Đã nhập lên hệ thống time soft bởi: input string
+- Đã Kích hoạt: true/false
+- Ghi chú: input string
+- Tổng hợp dạy show GX: input string
+- Tháng hoàn thiện HĐ đặt cọc: input string
+- Quà tặng: input string
+- Số BN tặng VC: input string
+- Tên KH tặng VC: input string
+- Số ngày trên VC: input string
+
