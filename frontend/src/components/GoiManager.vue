@@ -41,66 +41,17 @@
 
     <a-modal v-model:open="modalVisible" :title="editing ? 'Sửa gói' : 'Thêm gói'" width="700px" @ok="handleSave" :confirm-loading="saving" :destroy-on-close="true">
       <a-form :model="form" layout="vertical">
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="Mã gói">
-              <a-input v-model:value="form.maGoi" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="CLB">
-              <a-input v-model:value="form.clb" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-row :gutter="16">
-          <a-col :span="8">
-            <a-form-item label="Loại thẻ">
-              <a-input v-model:value="form.loaiThe" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="8">
-            <a-form-item label="Mã gói hoạt động">
-              <a-input v-model:value="form.maGoiHoatDong" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="8">
-            <a-form-item label="Phân bổ">
-              <a-input v-model:value="form.phanBo" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-row :gutter="16">
-          <a-col :span="8">
-            <a-form-item label="Mã loại thẻ target">
-              <a-input v-model:value="form.maLoaiTheTarget" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="8">
-            <a-form-item label="Mã loại thẻ lọc PT">
-              <a-input v-model:value="form.maLoaiTheLocPT" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="8">
-            <a-form-item label="Thời gian">
-              <a-input v-model:value="form.thoiGian" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-row :gutter="16">
-          <a-col :span="8">
-            <a-form-item label="Thời gian 2">
-              <a-input v-model:value="form.thoiGian2" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="8">
-            <a-form-item label="Giá niêm yết">
-              <a-input-number v-model:value="form.giaNiemYet" style="width:100%" :formatter="v => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')" :parser="v => v.replace(/,/g, '')" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="8">
-            <a-form-item label="Giá niêm yết GD">
-              <a-input-number v-model:value="form.giaNiemYetGD" style="width:100%" :formatter="v => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')" :parser="v => v.replace(/,/g, '')" />
+        <a-row v-for="(row, ri) in formRows" :key="ri" :gutter="16">
+          <a-col v-for="f in row" :key="f.key" :span="f.span">
+            <a-form-item :label="f.label">
+              <a-input-number
+                v-if="f.type === 'number'"
+                v-model:value="form[f.key]"
+                :formatter="f.formatMoney ? formatGoiMoney : undefined"
+                :parser="f.formatMoney ? parseGoiMoney : undefined"
+                style="width:100%"
+              />
+              <a-input v-else v-model:value="form[f.key]" />
             </a-form-item>
           </a-col>
         </a-row>
@@ -137,6 +88,31 @@ const modalVisible = ref(false)
 const saving = ref(false)
 const editing = ref(false)
 const importing = ref(false)
+const formatGoiMoney = (v) => v != null ? String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '0'
+const parseGoiMoney = (v) => v ? v.replace(/,/g, '') : '0'
+
+const formRows = [
+  [
+    { key: 'maGoi', label: 'Mã gói', span: 12 },
+    { key: 'clb', label: 'CLB', span: 12 },
+  ],
+  [
+    { key: 'loaiThe', label: 'Loại thẻ', span: 8 },
+    { key: 'maGoiHoatDong', label: 'Mã gói hoạt động', span: 8 },
+    { key: 'phanBo', label: 'Phân bổ', span: 8 },
+  ],
+  [
+    { key: 'maLoaiTheTarget', label: 'Mã loại thẻ target', span: 8 },
+    { key: 'maLoaiTheLocPT', label: 'Mã loại thẻ lọc PT', span: 8 },
+    { key: 'thoiGian', label: 'Thời gian', span: 8 },
+  ],
+  [
+    { key: 'thoiGian2', label: 'Thời gian 2', span: 8 },
+    { key: 'giaNiemYet', label: 'Giá niêm yết', span: 8, type: 'number', formatMoney: true },
+    { key: 'giaNiemYetGD', label: 'Giá niêm yết GD', span: 8, type: 'number', formatMoney: true },
+  ],
+]
+
 const emptyForm = {
   maGoi: '', clb: '', loaiThe: '', maGoiHoatDong: '', phanBo: '',
   maLoaiTheTarget: '', maLoaiTheLocPT: '', thoiGian: '', thoiGian2: '',

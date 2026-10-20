@@ -1,4 +1,12 @@
 <template>
+  <div style="margin-bottom: 12px; text-align: right">
+    <a-space>
+      <a-button @click="handleDownload" :loading="downloading">Tải template</a-button>
+      <a-upload :before-upload="handleUpload" :show-upload-list="false" accept=".xlsx,.xls">
+        <a-button :loading="uploading">Tải lên Excel</a-button>
+      </a-upload>
+    </a-space>
+  </div>
   <a-form layout="vertical" :model="store.form" style="max-width: 1400px; margin: 0 auto">
     <a-card title="Thông tin cơ bản" style="margin-bottom: 16px">
       <a-row :gutter="16">
@@ -83,24 +91,10 @@
             </a-select>
           </a-form-item>
         </a-col>
-        <a-col :span="3">
-          <a-form-item label="Sale">
-            <a-select v-model:value="store.form.sale" placeholder="Chọn Sale" allow-clear>
-              <a-select-option v-for="s in store.saleOptions" :key="s" :value="s">{{ s }}</a-select-option>
-            </a-select>
-          </a-form-item>
-        </a-col>
-        <a-col :span="3">
-          <a-form-item label="PT chăm sóc">
-            <a-select v-model:value="store.form.ptChamSoc" placeholder="Chọn PT" allow-clear>
-              <a-select-option v-for="p in store.ptChamSocOptions" :key="p" :value="p">{{ p }}</a-select-option>
-            </a-select>
-          </a-form-item>
-        </a-col>
-        <a-col :span="3">
-          <a-form-item label="CS nhập">
-            <a-select v-model:value="store.form.csNhap" placeholder="Chọn CS" allow-clear>
-              <a-select-option v-for="c in store.csNhapOptions" :key="c" :value="c">{{ c }}</a-select-option>
+        <a-col v-for="d in dropdownFields" :key="d.key" :span="3">
+          <a-form-item :label="d.label">
+            <a-select v-model:value="store.form[d.key]" :placeholder="'Chọn ' + d.label" allow-clear>
+              <a-select-option v-for="opt in d.options" :key="opt" :value="opt">{{ opt }}</a-select-option>
             </a-select>
           </a-form-item>
         </a-col>
@@ -133,7 +127,7 @@
         </a-col>
         <a-col :span="3">
           <a-form-item label="Đơn giá niêm yết">
-            <a-input-number :value="store.donGiaNiemYet" disabled style="width: 100%" :formatter="v => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')" />
+            <a-input-number :value="store.donGiaNiemYet" disabled :formatter="formatMoney" style="width: 100%" />
           </a-form-item>
         </a-col>
       </a-row>
@@ -141,71 +135,39 @@
 
     <a-card title="Buổi tập & Thời gian" style="margin-bottom: 16px">
       <a-row :gutter="16">
-        <a-col :span="3">
-          <a-form-item label="PT GYM">
-            <a-input-number v-model:value="store.form.ptGym" :min="0" style="width: 100%" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="3">
-          <a-form-item label="PTTL/PTP">
-            <a-input-number v-model:value="store.form.pttl" :min="0" style="width: 100%" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="2">
-          <a-form-item label="Daily">
-            <a-input-number v-model:value="store.form.daily" :min="0" style="width: 100%" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="2">
-          <a-form-item label="Bơi">
-            <a-input-number v-model:value="store.form.boi" :min="0" style="width: 100%" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="2">
-          <a-form-item label="PT tặng">
-            <a-input-number v-model:value="store.form.ptTang" :min="0" style="width: 100%" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="3">
-          <a-form-item label="Buổi PT cố định">
-            <a-input-number v-model:value="store.form.buoiPtCoDinh" :min="0" style="width: 100%" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="3">
-          <a-form-item label="Tổng SS">
-            <a-input-number :value="store.tongSS" disabled style="width: 100%" />
+        <a-col v-for="f in sessionFields" :key="f.key" :span="f.span">
+          <a-form-item :label="f.label">
+            <a-input-number
+              v-if="f.editable"
+              v-model:value="store.form[f.key]"
+              :min="0"
+              style="width: 100%"
+            />
+            <a-input-number
+              v-else
+              :value="store[f.key]"
+              disabled
+              style="width: 100%"
+            />
           </a-form-item>
         </a-col>
       </a-row>
       <a-row :gutter="16">
-        <a-col :span="3">
-          <a-form-item label="Số tháng">
-            <a-input-number v-model:value="store.form.soThang" :min="0" style="width: 100%" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="3">
-          <a-form-item label="Cộng tháng BL">
-            <a-input-number v-model:value="store.form.congThangBL" :min="0" style="width: 100%" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="3">
-          <a-form-item label="Cộng tháng tặng">
-            <a-input-number v-model:value="store.form.congThangTang" :min="0" style="width: 100%" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="3">
-          <a-form-item label="Cộng ngày tặng">
-            <a-input-number v-model:value="store.form.congNgayTang" :min="0" style="width: 100%" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="3">
-          <a-form-item label="Tổng số tháng">
-            <a-input-number :value="store.tongSoThang" disabled style="width: 100%" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="4">
-          <a-form-item label="Gói tập">
-            <a-input :value="store.goiTap" disabled />
+        <a-col v-for="f in monthFields" :key="f.key" :span="f.span">
+          <a-form-item :label="f.label">
+            <a-input-number
+              v-if="f.editable"
+              v-model:value="store.form[f.key]"
+              :min="0"
+              style="width: 100%"
+            />
+            <a-input :value="store[f.key]" disabled v-else-if="f.type === 'text'" />
+            <a-input-number
+              v-else
+              :value="store[f.key]"
+              disabled
+              style="width: 100%"
+            />
           </a-form-item>
         </a-col>
       </a-row>
@@ -272,46 +234,26 @@
 
     <a-card title="Tài chính" style="margin-bottom: 16px">
       <a-row :gutter="16">
-        <a-col :span="4">
-          <a-form-item label="Tổng tiền bảo lưu">
-            <a-input-number :value="store.tongTienBaoLuu" disabled style="width: 100%" :formatter="v => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="4">
-          <a-form-item label="Tổng tiền buổi dạy">
-            <a-input-number :value="store.tongTienBuoiDay" disabled style="width: 100%" :formatter="v => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="3">
-          <a-form-item label="Tổng tiền">
-            <a-input-number :value="store.tongTien" disabled style="width: 100%" :formatter="v => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')" />
+        <a-col v-for="f in moneyFields" :key="f.key" :span="f.span">
+          <a-form-item :label="f.label">
+            <a-input-number :value="store[f.key]" disabled :formatter="formatMoney" style="width: 100%" />
           </a-form-item>
         </a-col>
         <a-col :span="3">
           <a-form-item label="Mức ưu đãi (%)">
-            <a-input-number v-model:value="store.form.mucUuDai" :min="0" :max="100" :formatter="v => `${v}%`" :parser="v => v.replace('%', '')" style="width: 100%" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="4">
-          <a-form-item label="Số tiền KH giảm">
-            <a-input-number :value="store.soTienKHGiam" disabled style="width: 100%" :formatter="v => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="3">
-          <a-form-item label="Tổng">
-            <a-input-number :value="store.tong" disabled style="width: 100%" :formatter="v => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')" />
+            <a-input-number v-model:value="store.form.mucUuDai" :min="0" :max="100" :formatter="formatPercent" :parser="parsePercent" style="width: 100%" />
           </a-form-item>
         </a-col>
       </a-row>
       <a-row :gutter="16">
         <a-col :span="4">
           <a-form-item label="% Sale tính DT">
-            <a-input-number v-model:value="store.form.phanTramSaleDT" :min="0" :max="100" :formatter="v => `${v}%`" :parser="v => v.replace('%', '')" style="width: 100%" />
+            <a-input-number v-model:value="store.form.phanTramSaleDT" :min="0" :max="100" :formatter="formatPercent" :parser="parsePercent" style="width: 100%" />
           </a-form-item>
         </a-col>
         <a-col :span="4">
           <a-form-item label="Tiền DV phải thu">
-            <a-input-number :value="store.soTienDVPhaiThu" disabled style="width: 100%" :formatter="v => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')" />
+            <a-input-number :value="store.soTienDVPhaiThu" disabled :formatter="formatMoney" style="width: 100%" />
           </a-form-item>
         </a-col>
       </a-row>
@@ -476,15 +418,129 @@
       </a-space>
     </div>
   </a-form>
+
+  <a-modal v-model:open="previewVisible" title="Xem trước dữ liệu tải lên" width="90%" :footer="null" :destroy-on-close="true">
+    <template v-if="previewRecords.length">
+      <a-alert :message="`Tìm thấy ${previewRecords.length} bản ghi trong file.`" type="info" show-icon style="margin-bottom: 12px" />
+      <a-table :data-source="previewRecords" :columns="previewColumns" :pagination="{ pageSize: 20 }" size="small" bordered :scroll="{ x: 'max-content' }" :row-key="(r, i) => i" />
+      <div style="margin-top: 16px; text-align: right">
+        <a-space>
+          <a-button @click="previewVisible = false">Huỷ</a-button>
+          <a-button type="primary" :loading="confirming" @click="handleConfirmUpload">Xác nhận thêm</a-button>
+        </a-space>
+      </div>
+    </template>
+    <a-empty v-else description="Không có dữ liệu" />
+  </a-modal>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { useDataStore } from '../stores/dataStore'
+import { downloadTemplate, previewUpload, confirmUpload } from '../services/api'
 
 const store = useDataStore()
 const saving = ref(false)
+const downloading = ref(false)
+const uploading = ref(false)
+const previewVisible = ref(false)
+const previewRecords = ref([])
+const confirming = ref(false)
+
+const previewColumns = [
+  { title: 'STT', dataIndex: 'stt', width: 60 },
+  { title: 'CLB', dataIndex: 'clb', width: 80 },
+  { title: 'Ngày', dataIndex: 'ngay', width: 60 },
+  { title: 'Tháng', dataIndex: 'thang', width: 60 },
+  { title: 'Năm', dataIndex: 'nam', width: 60 },
+  { title: 'Họ tên KH', dataIndex: 'hoTenKH', width: 180 },
+  { title: 'Ngày sinh', dataIndex: 'ngaySinh', width: 100 },
+  { title: 'SĐT', dataIndex: 'sdt', width: 110 },
+  { title: 'Mã gói', dataIndex: 'maGoi', width: 100 },
+  { title: 'Sale', dataIndex: 'sale', width: 80 },
+  { title: 'PT chăm sóc', dataIndex: 'ptChamSoc', width: 100 },
+  { title: 'Ngày bắt đầu', dataIndex: 'ngayBatDau', width: 100 },
+  { title: 'Ngày kết thúc', dataIndex: 'ngayKetThuc', width: 100 },
+  { title: 'Tổng tiền', dataIndex: 'tongTien', width: 100 },
+  { title: 'Tình trạng', dataIndex: 'tinhTrang', width: 100 },
+  { title: 'Trạng thái', dataIndex: 'trangThai', width: 100 },
+  { title: 'Ghi chú', dataIndex: 'ghiChu', width: 150 },
+]
+
+function handleDownload() {
+  downloading.value = true
+  downloadTemplate()
+  setTimeout(() => { downloading.value = false }, 1000)
+}
+
+async function handleUpload(file) {
+  uploading.value = true
+  try {
+    const res = await previewUpload(file)
+    previewRecords.value = res.data.records || []
+    previewVisible.value = true
+  } catch (e) {
+    message.error('Đọc file thất bại: ' + (e.response?.data?.detail || e.message))
+  } finally {
+    uploading.value = false
+  }
+  return false
+}
+
+async function handleConfirmUpload() {
+  confirming.value = true
+  try {
+    const res = await confirmUpload(previewRecords.value)
+    message.success(`Đã thêm ${res.data.added} bản ghi thành công!`)
+    previewVisible.value = false
+    previewRecords.value = []
+    store.loadDropdowns()
+    store.loadRecords()
+  } catch (e) {
+    message.error('Thêm dữ liệu thất bại: ' + (e.response?.data?.detail || e.message))
+  } finally {
+    confirming.value = false
+  }
+}
+
+const formatMoney = (v) => v != null ? String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '0'
+
+const dropdownFields = [
+  { key: 'sale', label: 'Sale', options: store.saleOptions },
+  { key: 'ptChamSoc', label: 'PT chăm sóc', options: store.ptChamSocOptions },
+  { key: 'csNhap', label: 'CS nhập', options: store.csNhapOptions },
+]
+
+const moneyFields = [
+  { key: 'tongTienBaoLuu', label: 'Tổng tiền bảo lưu', span: 4 },
+  { key: 'tongTienBuoiDay', label: 'Tổng tiền buổi dạy', span: 4 },
+  { key: 'tongTien', label: 'Tổng tiền', span: 3 },
+  { key: 'soTienKHGiam', label: 'Số tiền KH giảm', span: 4 },
+  { key: 'tong', label: 'Tổng', span: 3 },
+]
+
+const formatPercent = (v) => v != null ? v + '%' : '0%'
+const parsePercent = (v) => v ? v.replace('%', '') : '0'
+
+const sessionFields = [
+  { key: 'ptGym', label: 'PT GYM', span: 3, editable: true },
+  { key: 'pttl', label: 'PTTL/PTP', span: 3, editable: true },
+  { key: 'daily', label: 'Daily', span: 2, editable: true },
+  { key: 'boi', label: 'Bơi', span: 2, editable: true },
+  { key: 'ptTang', label: 'PT tặng', span: 2, editable: true },
+  { key: 'buoiPtCoDinh', label: 'Buổi PT cố định', span: 3, editable: true },
+  { key: 'tongSS', label: 'Tổng SS', span: 3, editable: false },
+]
+
+const monthFields = [
+  { key: 'soThang', label: 'Số tháng', span: 3, editable: true },
+  { key: 'congThangBL', label: 'Cộng tháng BL', span: 3, editable: true },
+  { key: 'congThangTang', label: 'Cộng tháng tặng', span: 3, editable: true },
+  { key: 'congNgayTang', label: 'Cộng ngày tặng', span: 3, editable: true },
+  { key: 'tongSoThang', label: 'Tổng số tháng', span: 3, editable: false },
+  { key: 'goiTap', label: 'Gói tập', span: 4, editable: false, type: 'text' },
+]
 
 function filterGoi(input, option) {
   return option.value?.toLowerCase()?.includes(input?.toLowerCase()) ||
